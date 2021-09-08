@@ -114,7 +114,7 @@ namespace Varjo.XR
                 case VarjoTextureFormat.RGBA16_FLOAT:
                     return TextureFormat.RGBAHalf;
                 case VarjoTextureFormat.NV12:
-                    return TextureFormat.R8; // We extract only Y channel from the YUV420 for now.
+                    return TextureFormat.RGB24;
                 default:
                     Debug.LogErrorFormat("Texture format {0} not supported", varjoTextureFormat);
                     return TextureFormat.Alpha8;
@@ -146,6 +146,17 @@ namespace Varjo.XR
                         Marshal.Copy(new IntPtr(srcOffset), data, destOffset, rowStride);
                     }
                 }
+
+                // NV12 contains a second plane for UV.
+                if (metadata.textureFormat == VarjoTextureFormat.NV12)
+                {
+                    for (int srcRow = 0; srcRow < height / 2; ++srcRow)
+                    {
+                        long srcOffset = cpuBuffer.ToInt64() + (srcRow + height) * rowStride;
+                        int destOffset = (height + height / 2 - srcRow - 1) * rowStride;
+                        Marshal.Copy(new IntPtr(srcOffset), data, destOffset, rowStride);
+                    }
+                }
             }
             else
             {
@@ -170,6 +181,41 @@ namespace Varjo.XR
                     int srcOffset = row * metadata.rowStride;
                     int destOffset = row * metadata.width;
                     Buffer.BlockCopy(data, srcOffset, yData, destOffset, metadata.width);
+                }
+
+                texture.LoadRawTextureData(yData);
+            }
+            else if (metadata.textureFormat == VarjoTextureFormat.NV12 && texture.format == TextureFormat.RGB24)
+            {
+                // Allocate working buffer for y data.
+                if (yData == null || yData.Length != metadata.width * metadata.height * sizeof(byte) * 3)
+                {
+                    yData = new byte[metadata.width * metadata.height * sizeof(byte) * 3];
+                }
+
+                // Copy data row by row since we need to change the stride.
+                int uvOffset = metadata.height * metadata.rowStride;
+                for (int row = 0; row < metadata.height; ++row)
+                {
+                    int srcYOffset = row * metadata.rowStride;
+                    int srcUVOffset = uvOffset + (row / 2) * metadata.rowStride;
+                    int destOffset = row * metadata.width * 3;
+                    for (int col = 0, n = destOffset + metadata.width * 3; destOffset < n; ++col)
+                    {
+                        byte y = data[srcYOffset++];
+                        byte u = data[srcUVOffset++];
+                        byte v = data[srcUVOffset++];
+                        //byte r = (byte)Mathf.Clamp(y + 1.28033f * (v - 128.0f), 0, 255);
+                        //byte g = (byte)Mathf.Clamp(y - 0.21482f * (u - 128.0f) - 0.38059f * (v - 128.0f), 0, 255);
+                        //byte b = (byte)Mathf.Clamp(y + 2.12798f * (u - 128.0f), 0, 255);
+                        yData[destOffset++] = y;
+                        yData[destOffset++] = u;
+                        yData[destOffset++] = v;
+                        y = data[srcYOffset++];
+                        yData[destOffset++] = y;
+                        yData[destOffset++] = u;
+                        yData[destOffset++] = v;
+                    }
                 }
 
                 texture.LoadRawTextureData(yData);

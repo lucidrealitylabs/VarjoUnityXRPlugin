@@ -92,15 +92,15 @@ namespace Varjo.XR
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct VarjoCameraIntrinsics
+    public struct VarjoCameraIntrinsics
     {
         internal VarjoCalibrationModel model;       //!< Intrisics calibration model.
-        internal double principalPointX;            //!< Camera principal point X.
-        internal double principalPointY;            //!< Camera principal point Y.
-        internal double focalLengthX;               //!< Camera focal length X.
-        internal double focalLengthY;               //!< Camera focal length Y.
+        public double principalPointX;            //!< Camera principal point X.
+        public double principalPointY;            //!< Camera principal point Y.
+        public double focalLengthX;               //!< Camera focal length X.
+        public double focalLengthY;               //!< Camera focal length Y.
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-        internal double[] distortionCoefficients;   //!< Intrinsics model coefficients. For omnidir: 2 radial, skew, xi, 2 tangential.
+        public double[] distortionCoefficients;   //!< Intrinsics model coefficients. For omnidir: 2 radial, skew, xi, 2 tangential.
     };
 
     [StructLayout(LayoutKind.Sequential)]

@@ -19,10 +19,13 @@ namespace Varjo.XR
         private VarjoTextureBuffer leftBuffer;
         private VarjoTextureBuffer rightBuffer;
 
+        public VarjoCameraIntrinsics leftIntrinsics;
+        public VarjoCameraIntrinsics rightIntrinsics;
+
         internal VarjoDistortedColorStream() : base()
         {
-            leftBuffer = new VarjoTextureBuffer(true);
-            rightBuffer = new VarjoTextureBuffer(true);
+            leftBuffer = new VarjoTextureBuffer(false);
+            rightBuffer = new VarjoTextureBuffer(false);
         }
 
         /// <summary>
@@ -57,6 +60,7 @@ namespace Varjo.XR
                     Debug.LogErrorFormat("Failed to get distorted color left buffer id {0}", streamData.frameNumber);
                     return;
                 }
+                leftIntrinsics = VarjoMixedReality.GetCameraIntrinsics(streamData.id, streamData.frameNumber, 0);
 
                 long rightBufferId = 0;
                 if (!VarjoMixedReality.GetDataStreamBufferId(streamData.id, streamData.frameNumber, 1/* varjo_ChannelIndex_Right */, out rightBufferId))
@@ -64,6 +68,7 @@ namespace Varjo.XR
                     Debug.LogErrorFormat("Failed to get distorted color right buffer id {0}", streamData.frameNumber);
                     return;
                 }
+                rightIntrinsics = VarjoMixedReality.GetCameraIntrinsics(streamData.id, streamData.frameNumber, 1);
 
                 leftBuffer.UpdateBuffer(leftBufferId);
                 rightBuffer.UpdateBuffer(rightBufferId);

@@ -169,6 +169,12 @@ namespace Varjo.XR
             RequestGazeCalibrationWithParameters(parameters, 2);
         }
 
+        public static GazeData GetOneGaze()
+        {
+            FetchGazeData();
+            return GetGaze();
+        }
+
         public static int GetGazeList(out List<GazeData> gazeData)
         {
             int gazeDataCount = FetchGazeData();

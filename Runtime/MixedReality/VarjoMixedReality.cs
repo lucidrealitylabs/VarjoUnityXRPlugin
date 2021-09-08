@@ -190,6 +190,11 @@ namespace Varjo.XR
             SetDepthEstimation(false);
         }
 
+        internal static VarjoCameraIntrinsics GetCameraIntrinsics(long id, long frameNumber, long channelIndex)
+        {
+            return varjo_GetCameraIntrinsics(GetVarjoSession(), id, frameNumber, channelIndex);
+        }
+
         /// <summary>
         /// Change virtual camera rendering position between users eyes and video see through cameras.
         /// </summary>
